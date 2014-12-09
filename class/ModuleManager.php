@@ -14,6 +14,9 @@
 		public function __construct(WhatsappBridge $Whatsapp)
 		{
 			$this->Caller = new WhatsBotCaller($Whatsapp, $this);
+
+			$this->LoadIncludes();
+			$this->LoadModules();
 		}
 
 		public function LoadModules() // devolver lista de modulos cargados
