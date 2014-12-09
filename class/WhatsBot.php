@@ -124,3 +124,5 @@
 	/*
 	 * Implement: https://github.com/mgp25/WhatsAPI-Official/wiki/WhatsAPI-Documentation#whatsapp-workflow
 	 */
+
+	// Agregar require_once para todo lo usado (Inclusive lo que no instanciamos nosotros).
