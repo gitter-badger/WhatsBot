@@ -1,4 +1,7 @@
 <?php
+	require_once 'WhatsBotParser.php';
+	require_once 'Utils.php';
+
 	class WhatsBotListener
 	{
 		private $Whatsapp = null;
@@ -8,13 +11,13 @@
 
 		private $StartTime = null;
 
-		public function __construct(WhatsProt &$Whatsapp, WhatsBotParser &$Parser, WhatsBotDB $DB)
+		public function __construct(WhatsProt $Whatsapp, WhatsBotDB $DB)
 		{
-			$this->Whatsapp = &$Whatsapp;
-			$this->Parser = &$Parser;
-			$this->DB = &$DB;
+			$this->Whatsapp = $Whatsapp;
+			$this->Parser = new WhatsBotParser($Whatsapp, $DB);
+			$this->DB = $DB;
 
-			$this->StartTime = time(); // Add function to Utils
+			$this->StartTime = time();
 		}
 
 		// To do: Log every event to database

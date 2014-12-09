@@ -1,4 +1,5 @@
 <?php
+	require_once 'WhatsBotCaller.php';
 	require_once 'Utils.php';
 
 	class ModuleManager
@@ -10,9 +11,9 @@
 		private $ExtModules = array();
 		private $MediaModules = array();
 
-		public function __construct(WhatsBotCaller &$Caller)
+		public function __construct(WhatsappBridge $Whatsapp)
 		{
-			$this->Caller = &$Caller;
+			$this->Caller = new WhatsBotCaller($Whatsapp, $this);
 		}
 
 		public function LoadModules() // devolver lista de modulos cargados

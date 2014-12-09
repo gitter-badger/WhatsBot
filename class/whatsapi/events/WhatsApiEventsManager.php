@@ -5,12 +5,12 @@
 
 		private $Classes = array();
 
-		public function setDebug($Debug)
+		public function SetDebug($Debug)
 		{
 			$this->Debug = $Debug;
 		}
 
-		public function bindClass(&$Class)
+		public function BindClass(&$Class)
 		{
 			$this->Classes[] = &$Class;
 

@@ -1,11 +1,13 @@
 <?php
+	require_once 'Utils.php';
+
 	class WhatsappBridge
 	{
 		private $Whatsapp = null;
 
-		public function __construct(WhatsProt &$WP)
+		public function __construct(WhatsProt $Whatsapp)
 		{
-			$this->Whatsapp = &$WP;
+			$this->Whatsapp = $Whatsapp;
 		}
 
 		public function SendMessage($To, $Message, $ID = null)

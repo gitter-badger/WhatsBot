@@ -1,43 +1,45 @@
 <?php
+	require_once 'WhatsappBridge.php';
+	require_once 'ModuleManager.php';
+	require_once 'Utils.php';
+
 	class WhatsBotCaller
 	{
-		private $ModuleManager = null;
 		private $Whatsapp = null;
 
-		public function __construct(&$MDLM, WhatsappBridge &$WPB)
+		private $ModuleManager = null;
+
+		public function __construct(WhatsappBridge $Whatsapp, ModuleManager $ModuleManager)
 		{
-			if($MDLM != null && !($MDLM instanceof ModuleManager)) // Podríamos testear en cada método si $this->ModuleManager está o no instanciado correctamente
-				trigger_error('You must pass a ModuleManager to WhatsBotCaller', E_USER_ERROR);
-				
-			$this->ModuleManager = &$MDLM;
-			$this->Whatsapp = &$WPB;
+			$this->Whatsapp = $Whatsapp;
+			$this->ModuleManager = $ModuleManager;
 		}
 
-		public function CallModule($ModuleName, $Filename, $Params, $Me, $ID, $Time, $From, $Name, $Text)
+		public function CallModule($ModuleName, $Filename, $Params, $Me, $ID, $Time, $From, $Name, $Text) // Cambiar orden
 		{
-			$ModuleManager = &$this->ModuleManager; // add to !reload, !update, etc...
-			$Whatsapp = &$this->Whatsapp;
+			$Whatsapp = $this->Whatsapp;
+			$ModuleManager = $this->ModuleManager;
 
 			return include $Filename;
 		}
-
-		public function CallDomainModule($ModuleName, $Filename, $ParsedURL, $URL, $Me, $ID, $Time, $From, $Name, $Text)
+		
+		public function CallDomainModule($ModuleName, $Filename, $ParsedURL, $URL, $Me, $ID, $Time, $From, $Name, $Text) // Cambiar orden
 		{
-			$Whatsapp = &$this->Whatsapp;
+			$Whatsapp = $this->Whatsapp;
 
 			return include $Filename;
 		}
 
 		public function CallExtensionModule($ModuleName, $Filename, $Me, $From, $ID, $Type, $Time, $Name, $Text, $URL, $ParsedURL)
 		{
-			$Whatsapp = &$this->Whatsapp;
+			$Whatsapp = $this->Whatsapp;
 
 			return include $Filename;
 		}
 
 		public function CallMediaModule($ModuleName, $Filename, $Me, $From, $ID, $Type, $Time, $Name, Array $Data)
 		{
-			$Whatsapp = &$this->Whatsapp;
+			$Whatsapp = $this->Whatsapp;
 
 			extract($Data);
 

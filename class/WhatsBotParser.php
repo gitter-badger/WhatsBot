@@ -1,13 +1,20 @@
 <?php
+	require_once 'ModuleManager.php';
+	require_once 'Utils.php';
+
 	class WhatsBotParser
 	{
 		private $Whatsapp = null;
+		
 		private $ModuleManager = null;
 
-		public function __construct(WhatsappBridge &$WhatsappBridge, ModuleManager &$ModuleManager)
+		private $DB = null;
+
+		public function __construct(WhatsProt $Whatsapp, WhatsBotDB $DB)
 		{
-			$this->Whatsapp = &$WhatsappBridge;
-			$this->ModuleManager = &$ModuleManager;
+			$this->Whatsapp = new WhatsappBridge($Whatsapp);
+			$this->ModuleManager = new ModuleManager($this->Whatsapp);
+			$this->DB = $DB;
 		}
 
 		public function ParseTextMessage($Me, $FromGroup, $FromUser, $ID, $Type, $Time, $Name, $Text) // Testear si el módulo necesita argumentos o no con explode y strlen...

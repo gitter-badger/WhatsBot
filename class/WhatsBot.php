@@ -1,35 +1,34 @@
 <?php
 	require_once 'whatsapi/whatsprot.class.php';
 	require_once 'WhatsBotListener.php';
-	require_once 'WhatsBotParser.php';
-	require_once 'ModuleManager.php';
-	require_once 'WhatsBotCaller.php';
-	require_once 'WhatsappBridge.php';
 	require_once 'DB/DB.php';
 	require_once 'Utils.php';
 
 	final class WhatsBot
 	{
 		private $Whatsapp = null;
-		private $Password = null;
-
 		private $Listener = null;
-
-		private $Parser = null;
-		private $ModuleManager = null;
-		private $Caller = null;
-		private $Bridge = null;
 
 		private $DB = null;
 
+		private $Debug = false;
+
 		public function __construct($Debug = false)
 		{
+			$this->Debug = $Debug;
+
+
 			Utils::Write('Cleaning temp directory...');
 			Utils::CleanTemp(); // If true
 			Utils::Write('Temp directory cleaned...');
 
 			Utils::WriteNewLine();
 
+			$this->Init();
+		}
+
+		private function Init()
+		{
 			$Config = Utils::GetJson('config/WhatsBot.json');
 
 			if($Config !== false && !empty($Config['database']['filename']) && !empty($Config['whatsapp']['username']) && !empty($Config['whatsapp']['identity']) && !empty($Config['whatsapp']['password']) && !empty($Config['whatsapp']['nickname'])) // and DB
@@ -41,8 +40,7 @@
 					$Config['whatsapp']['username'],
 					$Config['whatsapp']['identity'],
 					$Config['whatsapp']['password'],
-					$Config['whatsapp']['nickname'],
-					$Debug
+					$Config['whatsapp']['nickname']
 				);
 			}
 			else
@@ -54,21 +52,25 @@
 			$this->DB = new WhatsBotDB($Filename);
 		}
 
-		private function InitWhatsAPI($Username, $Identity, $Password, $Nickname, $Debug)
+		private function InitWhatsAPI($Username, $Identity, $Password, $Nickname)
 		{
-			$this->Whatsapp = new WhatsProt($Username, $Identity, $Nickname, $Debug);
+			$this->Whatsapp = new WhatsProt
+			(
+				$Username,
+				$Identity,
+				$Nickname,
+				$this->Debug
+			);
 
-			$this->Bridge = new WhatsappBridge($this->Whatsapp);
-			$this->Caller = new WhatsBotCaller($this->ModuleManager, $this->Bridge);
-			$this->ModuleManager = new ModuleManager($this->Caller);
-			$this->Parser = new WhatsBotParser($this->Bridge, $this->ModuleManager);
-			$this->Listener = new WhatsBotListener($this->Whatsapp, $this->Parser, $this->DB);
+			$this->Listener = new WhatsBotListener
+			(
+				$this->Whatsapp,
+				$this->DB
+			);
 
-			$this->ModuleManager->LoadIncludes();
-			$this->ModuleManager->LoadModules();
 
-			$this->Whatsapp->eventManager()->setDebug($Debug);
-			$this->Whatsapp->eventManager()->bindClass($this->Listener);
+			$this->Whatsapp->eventManager()->SetDebug($this->Debug);
+			$this->Whatsapp->eventManager()->BindClass($this->Listener);
 
 			Utils::Write('Connecting...');
 			$this->Whatsapp->connect();
