@@ -2,9 +2,9 @@
 	/* To do. 
 	 * If you have already the video size and hash, you can send it without re-uploading it to whatsapp servers
 	 * $w->sendMessageVideo($target, $filepath, false, $fsize, $fhash, $caption);
-	 * 
-	 * Use GetRemoteFile
 	 */
+
+	require_once 'class/Utils/TempFile.php';
 
 	$From = Utils::GetFrom($From);
 
@@ -12,93 +12,67 @@
 
 	$Config = Utils::GetJson('config/soundcloud.json');
 
-	if($Config !== false && isset($Config['endpoint']) && isset($Config['clientid']))
+	if($Config !== false && !empty($Config['endpoint']) && !empty($Config['clientid']))
 	{
 		$RequestURL = "{$Config['endpoint']}resolve.json?client_id={$Config['clientid']}&url={$URL}";
 
-		$Headers = get_headers($RequestURL, 1); // @?
+		$Track = Utils::GetRemoteJson($RequestURL, 302);
 
-		if($Headers !== false && isset($Headers['Location']) && substr($Headers[0], 9, 3) == '302')
+		if($Track !== false && isset($Track['kind']) && $Track['kind'] == 'track' && isset($Track['id']) && is_int($Track['id']))
 		{
-			$Track = file_get_contents($RequestURL); // if false then return false
-			$Track = json_decode($Track, true);
+			$RequestURL = "{$Config['endpoint']}i1/tracks/{$Track['id']}/streams?client_id={$Config['clientid']}";
 
-			if($Track !== false && isset($Track['kind']) && $Track['kind'] == 'track' && isset($Track['id']) && is_int($Track['id']))
+			$Streams = Utils::GetRemoteJson($RequestURL, 200);
+
+			if($Streams !== false)
 			{
-				$RequestURL = "{$Config['endpoint']}i1/tracks/{$Track['id']}/streams?client_id={$Config['clientid']}";
-
-				$Headers = get_headers($RequestURL, 1); // @?
-
-				if($Headers !== false && substr($Headers[0], 9, 3) == '200')
+				if(isset($Streams['http_mp3_128_url']))
 				{
-					$Streams = file_get_contents($RequestURL);
-					$Streams = json_decode($Streams, true);
+					$Data = file_get_contents($Streams['http_mp3_128_url']);
 
-					if($Streams !== false)
+					if($Data !== false && strlen($Data) > 0)
 					{
-						if(isset($Streams['http_mp3_128_url']))
+						$File = new TempFile('mp3');
+
+						if($File->Write($Data))
+							if($Whatsapp->SendAudioMessage($From, $File->GetFilename()))
+								$Error = false;
+
+						//$File->Delete();
+					}
+				}
+				elseif(isset($Streams['hls_mp3_128_url']))
+				{
+					$Playlist = Utils::GetRemoteFile($Streams['hls_mp3_128_url'], 200);
+					$Playlist = Utils::GetURLs($Playlist);
+
+					if($Playlist !== false)
+					{
+						$Continue = true;
+						$Data = '';
+
+						foreach($Playlist as $URL)
 						{
-							$Data = file_get_contents($Streams['http_mp3_128_url']);
+							$D = Utils::GetRemoteFile($URL);
 
-							if($Data !== false && strlen($Data) > 0)
+							if($D !== false)
+								$Data .= $D;
+							else // Try again?
 							{
-								$Filename = tempnam('.', 'tmp') . '.mp3';
-
-								if(file_put_contents($Filename, $Data))
-								{
-									$R = $Whatsapp->SendMessageAudio($From, $Filename);
-
-									if($R)
-										$Error = false;
-								}
-
-								if(is_file($Filename))
-									unlink($Filename);
+								$Continue = false;
+								break;
 							}
 						}
-						elseif(isset($Streams['hls_mp3_128_url']))
+
+						if($Continue && strlen($Data) > 0)
 						{
-							$Playlist = file_get_contents($Streams['hls_mp3_128_url']);
+							$File = new TempFile('mp3');
 
-							if($Playlist !== false)
-							{
-								$URLs = Utils::GetURLs($Playlist);
+							if($File->Write($Data))
+								if($Whatsapp->SendAudioMessage($From, $File->GetFilename()))
+									$Error = false;
 
-								if($URLs !== false)
-								{
-									$Continue = true;
-									$Data = '';
-
-									foreach($URLs as $URL)
-									{
-										$D = file_get_contents($URL);
-
-										if($D !== false)
-											$Data .= $D;
-										else
-										{
-											$Continue = false;
-											break;
-										}
-									}
-
-									if($Continue && strlen($Data) > 0)
-									{
-										$Filename = tempnam('.', 'tmp') . '.mp3';
-
-										if(file_put_contents($Filename, $Data))
-										{
-											$R = $Whatsapp->SendMessageAudio($From, $Filename);
-
-											if($R)
-												$Error = false;
-										}
-
-										if(is_file($Filename))
-											unlink($Filename);
-									}
-								}
-							}
+							//$File->Delete();
 						}
 					}
 				}
