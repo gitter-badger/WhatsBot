@@ -1,6 +1,6 @@
 <?php
 	class Utils
-	{
+	{ // To do: Utils:: => static:: or self::
 		public static function GetJson($Filename)
 		{
 			if(is_file($Filename) && is_readable($Filename))
@@ -141,6 +141,21 @@
 			if($Headers !== false && isset($Headers[0]) && in_array(substr($Headers[0], 9, 3), $SucessHeaders))
 			{
 				$Data = file_get_contents($URL);
+
+				if($Data !== false)
+					return $Data;
+			}
+
+			return false;
+		}
+
+		public static function GetRemoteJson($URL, $SucessHeaders = array(200, 301, 302))
+		{
+			$Data = static::GetRemoteFile($URL, $SucessHeaders);
+
+			if($Data !== false)
+			{
+				$Data = json_decode($Data, true);
 
 				if($Data !== false)
 					return $Data;
