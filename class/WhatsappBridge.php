@@ -15,7 +15,7 @@
 			return $this->Whatsapp->sendMessage($To, $Message, $ID);
 		}
 
-		public function SendMessageAudio($To, $Filepath, $StoreURLMedia = false, $Filesize = 0, $Filehash = '') // SendAudioMessage
+		public function SendAudioMessage($To, $Filepath, $StoreURLMedia = false, $Filesize = 0, $Filehash = '')
 		{
 			return $this->Whatsapp->sendMessageAudio($To, $Filepath, $StoreURLMedia, $Filesize, $Filehash);
 		}
